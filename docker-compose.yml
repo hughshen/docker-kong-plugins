@@ -1,0 +1,39 @@
+version: "3.3"
+
+services:
+  postgres:
+    image: postgres:9.6
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_HOST_AUTH_METHOD: trust
+
+  konga:
+    image: pantsel/konga
+    ports:
+      - "8337:1337"
+    links:
+      - kong
+
+  kong:
+    build: .
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_CASSANDRA_CONTACT_POINTS: postgres
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+      KONG_PLUGINS: "bundled,go-hello"
+      KONG_GO_PLUGINS_DIR: "/usr/local/kong"
+    ports:
+      - "8300:8000"
+      - "8343:8443"
+      - "8301:8001"
+      - "8344:8444"
+    links:
+      - postgres
+
